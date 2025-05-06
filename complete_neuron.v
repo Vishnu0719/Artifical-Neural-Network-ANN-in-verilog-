@@ -131,10 +131,10 @@ always @(posedge clk or posedge rst) begin
         out <= 0;
     else if (act_en) begin
         if ($signed(in) >= 0) begin
-            if (|in[2*data_width-1 -: (weight_int_width+1)]) // Overflow to sign bit of integer part
-                out <= {1'b0, {(data_width-1){1'b1}}}; // Positive saturate
+            if (|in[2*data_width-1 -: (weight_int_width+1)]) 
+                out <= {1'b0, {(data_width-1){1'b1}}}; 
             else
-                out <= in[data_width-1:0]; // Ensure proper width
+                out <= in[data_width-1:0]; 
         end 
         else 
             out <= 0;      
