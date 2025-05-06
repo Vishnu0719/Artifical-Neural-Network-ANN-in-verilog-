@@ -1,4 +1,5 @@
 
+// Complete ANN which uses shift registers between the layers to convert parallel output as a serial input to the next layer.
 
 `include "include.v"
 
@@ -99,6 +100,7 @@ end
 
 end
 
+ // Layer 2
 
 wire [`layer2_neurons-1:0] valid_out_2;
 wire [`layer2_neurons*`data_width-1:0] out2;
@@ -181,6 +183,7 @@ end
 
 end
 
+ // Layer 3
 
 wire [`layer3_neurons-1:0] valid_out_3;
 wire [`layer3_neurons*`data_width-1:0] out3;
@@ -258,6 +261,8 @@ endcase
 end 
 
 end
+
+ // Layer 4 output to the max finder function which finds the max value from the output.
 
  max_find #(.no_neurons(`layer3_neurons),  .data_width(`data_width))
 
