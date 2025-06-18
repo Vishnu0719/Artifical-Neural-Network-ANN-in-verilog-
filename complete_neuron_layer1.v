@@ -7,15 +7,17 @@ module nn_layer_1 #(parameter NUM_NEURONS = 30, data_width = 16, no_weights = 78
  input clk,
  input rst,
  input [data_width-1:0] in,
- input [data_width-1:0] weights,
- input [2*data_width-1:0] bias,
-    
+ 
+ input [NUM_NEURONS-1:0][data_width-1:0] weights,
+ 
+ input  [NUM_NEURONS-1:0][data_width-1:0] bias,
+   
 
- output [NUM_NEURONS-1:0][data_width-1:0] out,
- output valid_out
+ output [NUM_NEURONS-1:0][data_width-1:0] layer1_out,
+
+//output [NUM_NEURONS*data_width-1:0] layer1_out,
+ output [NUM_NEURONS-1:0] o_valid
 );
-
-wire [NUM_NEURONS-1:0] out_valid;
 
 genvar i;
 
@@ -29,11 +31,11 @@ layer1_neuron (
 
 .clk(clk),
 .rst(rst),
-.in(in[i]),
-.weights(weights),
-.bias(bias),
-.out(out[i]),
-.valid_out(out_valid[i])
+.in(in),
+.weights(weights[i]),
+.bias(bias[i]),
+.out(layer1_out[i]),
+.out_valid(o_valid[i])
 
 );
 
@@ -41,8 +43,9 @@ end
 
 endgenerate
 
-assign valid_out = (out_valid == (2 ** NUM_NEURONS) - 1) ? 1 : 0;
-
 endmodule
+
+
+
 
 
