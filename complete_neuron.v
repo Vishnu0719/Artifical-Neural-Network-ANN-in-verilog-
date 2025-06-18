@@ -23,7 +23,7 @@ end
 endmodule
 
 
-// accumulator and counter
+// accumulator
 
 
 module acc_count #(parameter data_width = 16)
@@ -63,14 +63,6 @@ end
 
 endmodule 
 
-
-
-
-
-
-
-
-
 // bias adder
 
 module bias_add #(parameter data_width = 16)
@@ -100,8 +92,6 @@ if ((in0[2*data_width-1] == in1[2*data_width-1]) && (sum_reg[2*data_width-1] != 
 
    else if (!sum_reg[2*data_width-1])  sum <= {1'b1, {(2*data_width-1){1'b0}}};  // saturate to lowest value (negative overflow (inputs are -ve & o/p is +ve)
 
-
-
 end else sum <= sum_reg;
 
 end 
@@ -110,12 +100,7 @@ end
 
 endmodule 
 
-
-
-
-
 // ReLu activation
-
 
 module relu #(parameter data_width=16, weight_int_width=4)
 (
@@ -131,10 +116,10 @@ always @(posedge clk or posedge rst) begin
         out <= 0;
     else if (act_en) begin
         if ($signed(in) >= 0) begin
-            if (|in[2*data_width-1 -: (weight_int_width+1)]) 
-                out <= {1'b0, {(data_width-1){1'b1}}}; 
+            if (|in[2*data_width-1 -: (weight_int_width+1)]) // Overflow to sign bit of integer part
+                out <= {1'b0, {(data_width-1){1'b1}}}; // Positive saturate
             else
-                out <= in[data_width-1:0]; 
+                out <= in[data_width-1:0]; // Ensure proper width
         end 
         else 
             out <= 0;      
@@ -235,8 +220,8 @@ module neuron #(parameter no_weights = 784, num_inputs = 784, data_width = 16, w
     
 
     
-    output  [data_width-1:0] out, 
-    output  valid_out      
+    output [data_width-1:0] out, 
+    output reg out_valid     
 );
 
 parameter address_width = $clog2(no_weights);
@@ -273,13 +258,13 @@ wire [2*data_width-1:0] biasadd_reg_out;
 
   reg [$clog2(no_weights)+1:0] count;
   
-
+reg signal_valid;
   //reg done_accumulation;
 
  // reg done;
   //reg out_valid;
   
-  assign valid_out = out ? 1'b1 : 1'b0;
+  //assign valid_out = out ? 1'b1 : 1'b0;
 
 // writing in the memory
 
@@ -357,8 +342,7 @@ acc_count #(.data_width(data_width)) neuron_acc (
     .acc_en(acc_en),
     .in0(mul_reg_out),
     .in1(acc_reg_out),
-    .sum(acc_reg_out)
-      
+    .sum(acc_reg_out)     
 );
 
 bias_add #(.data_width(data_width)) neuron_bias_add (
@@ -397,6 +381,13 @@ else if (acc_en) count <= count + 1'b1;
 end
 
 
+
+always @(posedge clk) begin
+
+signal_valid <= out ? 1'b1 : 1'b0;
+out_valid <= signal_valid;
+
+end
 
 // fsm state
 
@@ -502,12 +493,14 @@ BIASADD:  begin
 
           end
 
+
+
 ACTIVATION:  begin
 
              act_en = 1'b1;
            
              
-if (valid_out) begin
+if (out_valid) begin
  
         next_done =  1'b1;
         next_state = LOAD;
@@ -521,4 +514,3 @@ endcase
 end
 
 endmodule
-
