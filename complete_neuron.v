@@ -259,12 +259,7 @@ wire [2*data_width-1:0] biasadd_reg_out;
   reg [$clog2(no_weights)+1:0] count;
   
 reg signal_valid;
-  //reg done_accumulation;
-
- // reg done;
-  //reg out_valid;
   
-  //assign valid_out = out ? 1'b1 : 1'b0;
 
 // writing in the memory
 
